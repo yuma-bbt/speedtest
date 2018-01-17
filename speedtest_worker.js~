@@ -21,7 +21,6 @@ var pingProgress = 0 //progress of ping+jitter test 0-1
 
 var latitudeStatus = ''
 var longitudeStatus = ''
-var cookieStatus = ''
 
 var log='' //telemetry log
 function tlog(s){log+=Date.now()+': '+s+'\n'}
@@ -94,16 +93,10 @@ this.addEventListener('message', function (e) {
  	//console.log("val_longitude"+val_longitude)
 }
 
-  if(params[0].indexOf("cookie:") >= 0) {
-	var cookievar;
-        cookievar = params[0].split(":")
-	cookieStatus = cookievar[1];
-	console.log(cookieStatus);
-}
 
 
   if (params[0] === 'status') { // return status
-    postMessage(testStatus + ';' + dlStatus + ';' + ulStatus + ';' + pingStatus + ';' + clientIp + ';' + jitterStatus + ';' + dlProgress + ';' + ulProgress + ';' + pingProgress + ';' + latitudeStatus + ';' + longitudeStatus +';'+ cookieStatus)
+    postMessage(testStatus + ';' + dlStatus + ';' + ulStatus + ';' + pingStatus + ';' + clientIp + ';' + jitterStatus + ';' + dlProgress + ';' + ulProgress + ';' + pingProgress + ';' + latitudeStatus + ';' + longitudeStatus)
   }
 
   if (params[0] === 'start' && testStatus === -1) { // start new test
@@ -212,6 +205,8 @@ function getIp (done) {
 }
 
 
+function getLocation () {
+}
 // download test, calls done function when it's over
 var dlCalled = false // used to prevent multiple accidental calls to dlTest
 function dlTest (done) {
@@ -493,18 +488,15 @@ function sendTelemetry(){
   try{
     var fd = new FormData()
     fd.append('dl', dlStatus)
-    console.log('dl=' + dlStatus + "_dl-type=" + typeof(dlStatus))
     fd.append('ul', ulStatus)
     fd.append('ping', pingStatus)
     fd.append('jitter', jitterStatus)
     fd.append('log', settings.telemetry_level>1?log:"")
     fd.append('latitude', latitudeStatus)
-    console.log('latitude=' + latitudeStatus + "_dl-type=" + typeof(latitudeStatus))
     fd.append('longitude', longitudeStatus)
-    fd.append('cookie', cookieStatus)
     xhr.send(fd)
   }catch(ex){
-    var postData = 'dl='+encodeURIComponent(dlStatus)+'&ul='+encodeURIComponent(ulStatus)+'&ping='+encodeURIComponent(pingStatus)+'&jitter='+encodeURIComponent(jitterStatus)+'&log='+encodeURIComponent(settings.telemetry_level>1?log:'')+'&latitude'+encodeURIComponent(latitudeStatus)+'&longitude'+encodeURIComponent(longitudeStatus)+'&cookie'+encodeURIComponent(cookieStatus)
+    var postData = 'dl='+encodeURIComponent(dlStatus)+'&ul='+encodeURIComponent(ulStatus)+'&ping='+encodeURIComponent(pingStatus)+'&jitter='+encodeURIComponent(jitterStatus)+'&log='+encodeURIComponent(settings.telemetry_level>1?log:'')+'&latitude'+encodeURIComponent(latitudeStatus)+'&longitude'+encodeURIComponent(longitudeStatus)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(postData)
   }

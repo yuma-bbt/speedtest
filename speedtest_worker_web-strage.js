@@ -79,8 +79,14 @@ function url_sep (url) { return url.match(/\?/) ? '&' : '?'; }
 this.addEventListener('message', function (e) {
   var params = e.data.split(' ')
 
-  console.log("params[0] =" + params[0])
+  var myStorage = localStorage;
+
+  //console.log("params[0] =" + params[0]);
+  console.log("local_Starage");
+  console.log("getlocalStorage = " + local_Storage.getItem("latitude"));
   //if(typeof(params[0].indexOf(".")) ===  judgement_value) { 
+
+
   if(typeof(params[0].indexOf(":")) === judgement_value && typeof(params[0].indexOf("latitude")) === judgement_value) {
 	var locations;
 	locations = params[0].split(":")
@@ -492,20 +498,21 @@ function sendTelemetry(){
   console.log(settings.url_telemetry);
   try{
     var fd = new FormData()
+    console.log("send telemetry method")
     fd.append('dl', dlStatus)
-    console.log('dl=' + dlStatus + "_dl-type=" + typeof(dlStatus))
     fd.append('ul', ulStatus)
     fd.append('ping', pingStatus)
     fd.append('jitter', jitterStatus)
     fd.append('log', settings.telemetry_level>1?log:"")
-    fd.append('latitude', latitudeStatus)
-    console.log('latitude=' + latitudeStatus + "_dl-type=" + typeof(latitudeStatus))
-    fd.append('longitude', longitudeStatus)
-    fd.append('cookie', cookieStatus)
+    fd.append('latitude', String(latitudeStatus))
+    fd.append('longitude', String(longitudeStatus))
+    fd.append('cookie', String(cookieStatus))
     xhr.send(fd)
+    console.log("fd="+fd)
   }catch(ex){
     var postData = 'dl='+encodeURIComponent(dlStatus)+'&ul='+encodeURIComponent(ulStatus)+'&ping='+encodeURIComponent(pingStatus)+'&jitter='+encodeURIComponent(jitterStatus)+'&log='+encodeURIComponent(settings.telemetry_level>1?log:'')+'&latitude'+encodeURIComponent(latitudeStatus)+'&longitude'+encodeURIComponent(longitudeStatus)+'&cookie'+encodeURIComponent(cookieStatus)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+    console.log("postData="+postData)
     xhr.send(postData)
   }
 }

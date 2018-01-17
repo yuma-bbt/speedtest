@@ -5,10 +5,7 @@
 	GNU LGPLv3 License
 */
 
-//
-
 // data reported to main thread
-
 var testStatus = -1 // -1=not started, 0=starting, 1=download test, 2=ping+jitter test, 3=upload test, 4=finished, 5=abort/error
 var dlStatus = '' // download speed in megabit/s with 2 decimal digits
 var ulStatus = '' // upload speed in megabit/s with 2 decimal digits
@@ -18,10 +15,6 @@ var clientIp = '' // client's IP address as reported by getIP.php
 var dlProgress = 0 //progress of download test 0-1
 var ulProgress = 0 //progress of upload test 0-1
 var pingProgress = 0 //progress of ping+jitter test 0-1
-
-var latitudeStatus = ''
-var longitudeStatus = ''
-var cookieStatus = ''
 
 var log='' //telemetry log
 function tlog(s){log+=Date.now()+': '+s+'\n'}
@@ -57,12 +50,6 @@ var xhr = null // array of currently active xhr requests
 var interval = null // timer used in tests
 var test_pointer = 0 //pointer to the next test to run inside settings.test_order
 
-//add judgement value
-var judgement_value = typeof(1)
-
-
-
-
 /*
   this function is used on URLs passed in the settings to determine whether we need a ? or an & as a separator
 */
@@ -78,34 +65,9 @@ function url_sep (url) { return url.match(/\?/) ? '&' : '?'; }
 */
 this.addEventListener('message', function (e) {
   var params = e.data.split(' ')
-
-  console.log("params[0] =" + params[0])
-  //if(typeof(params[0].indexOf(".")) ===  judgement_value) { 
-  if(typeof(params[0].indexOf(":")) === judgement_value && typeof(params[0].indexOf("latitude")) === judgement_value) {
-	var locations;
-	locations = params[0].split(":")
-	if(locations[0] === "latitude"){
-       		latitudeStatus   = locations[1];
-	}
-	else if(locations[0] === "longitude"){
-       		longitudeStatus= locations[1];
-
-}
- 	//console.log("val_longitude"+val_longitude)
-}
-
-  if(params[0].indexOf("cookie:") >= 0) {
-	var cookievar;
-        cookievar = params[0].split(":")
-	cookieStatus = cookievar[1];
-	console.log(cookieStatus);
-}
-
-
   if (params[0] === 'status') { // return status
-    postMessage(testStatus + ';' + dlStatus + ';' + ulStatus + ';' + pingStatus + ';' + clientIp + ';' + jitterStatus + ';' + dlProgress + ';' + ulProgress + ';' + pingProgress + ';' + latitudeStatus + ';' + longitudeStatus +';'+ cookieStatus)
+    postMessage(testStatus + ';' + dlStatus + ';' + ulStatus + ';' + pingStatus + ';' + clientIp + ';' + jitterStatus + ';' + dlProgress + ';' + ulProgress + ';' + pingProgress)
   }
-
   if (params[0] === 'start' && testStatus === -1) { // start new test
     testStatus = 0
     try {
@@ -167,8 +129,6 @@ this.addEventListener('message', function (e) {
     }
     runNextTest()
   }
-
-
   if (params[0] === 'abort') { // abort command
     tlog('manually aborted')
     clearRequests() // stop all xhr activity
@@ -177,7 +137,6 @@ this.addEventListener('message', function (e) {
     if (settings.telemetry_level > 1) sendTelemetry()
 	testStatus = 5; dlStatus = ''; ulStatus = ''; pingStatus = ''; jitterStatus = '' // set test as aborted
   }
-
 })
 // stops all XHR activity, aggressively
 function clearRequests () {
@@ -210,8 +169,6 @@ function getIp (done) {
   xhr.open('GET', settings.url_getIp + url_sep(settings.url_getIp) + 'r=' + Math.random(), true)
   xhr.send()
 }
-
-
 // download test, calls done function when it's over
 var dlCalled = false // used to prevent multiple accidental calls to dlTest
 function dlTest (done) {
@@ -493,21 +450,16 @@ function sendTelemetry(){
   try{
     var fd = new FormData()
     fd.append('dl', dlStatus)
-    console.log('dl=' + dlStatus + "_dl-type=" + typeof(dlStatus))
     fd.append('ul', ulStatus)
     fd.append('ping', pingStatus)
     fd.append('jitter', jitterStatus)
     fd.append('log', settings.telemetry_level>1?log:"")
-    fd.append('latitude', latitudeStatus)
-    console.log('latitude=' + latitudeStatus + "_dl-type=" + typeof(latitudeStatus))
-    fd.append('longitude', longitudeStatus)
-    fd.append('cookie', cookieStatus)
     xhr.send(fd)
   }catch(ex){
-    var postData = 'dl='+encodeURIComponent(dlStatus)+'&ul='+encodeURIComponent(ulStatus)+'&ping='+encodeURIComponent(pingStatus)+'&jitter='+encodeURIComponent(jitterStatus)+'&log='+encodeURIComponent(settings.telemetry_level>1?log:'')+'&latitude'+encodeURIComponent(latitudeStatus)+'&longitude'+encodeURIComponent(longitudeStatus)+'&cookie'+encodeURIComponent(cookieStatus)
+    var postData = 'dl='+encodeURIComponent(dlStatus)+'&ul='+encodeURIComponent(ulStatus)+'&ping='+encodeURIComponent(pingStatus)+'&jitter='+encodeURIComponent(jitterStatus)+'&log='+encodeURIComponent(settings.telemetry_level>1?log:'')
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(postData)
   }
+
+
 }
-
-

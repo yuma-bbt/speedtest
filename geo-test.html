@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no" />
-<title>HTML5 Speedtest</title>
+<title>iNonius SpeedTest</title>
 <style type="text/css">
 	html,body{
 		border:none; padding:0; margin:0;
@@ -103,7 +103,10 @@
 	}
 
 </style>
-<script type="text/javascript">
+<script type="text/javascript" >
+var val_latitude ="0.0";
+var val_longitude ="0.0";
+
 function I(id){return document.getElementById(id);}
 var meterBk="#E0E0E0";
 var dlColor="#6060AA",
@@ -111,6 +114,9 @@ var dlColor="#6060AA",
 	pingColor="#AA6060",
 	jitColor="#AA6060";
 var progColor="#EEEEEE";
+
+
+var location_value = new Array(2);
 
 //CODE FOR GAUGES
 function drawMeter(c,amount,bk,fg,progress,prog){
@@ -149,6 +155,9 @@ function msToAmount(s){
 //SPEEDTEST AND UI CODE
 var w=null; //speedtest worker
 var data=null; //data from worker
+var location_datas=null;//add code
+
+
 function startStop(){
 	if(w!=null){
 		//speedtest is running, abort
@@ -159,18 +168,23 @@ function startStop(){
 		initUI();
 	}else{
 		//test is not running, begin
-		w=new Worker('speedtest_worker.min.js');
+		test_latitude=geoFindMe();//added function
+		w=new Worker('speedtest_worker.js');
                 w.postMessage('start {"telemetry_level":"basic"}'); //Add optional parameters (see doc.md)
 		w.postMessage('start'); //Add optional parameters as a JSON object to this command
 		I("startStopBtn").className="running";
 		w.onmessage=function(e){
 			data=e.data.split(';');
+			w.postMessage("latitude:" + String(location_value[0]).substr(0,7)); //post latitude  datas
+			w.postMessage("longitude:" + String(location_value[1]).substr(0,7)); //post longitude datas
+			w.postMessage("cookie:" + String(document.cookie).substr(8)); //post longitude datas
 			var status=Number(data[0]);
 			if(status>=4){
 				//test completed
 				I("startStopBtn").className="";
 				w=null;
 				updateUI(true);
+				
 			}
 		};
 	}
@@ -180,6 +194,9 @@ function updateUI(forced){
 	if(!forced&&(!data||!w)) return;
 	var status=Number(data[0]);
 	I("ip").textContent=data[4];
+	I("latitude").textContent=location_value[0];
+	I("longitude").textContent=location_value[1];
+
 	I("dlText").textContent=(status==1&&data[1]==0)?"...":data[1];
 	drawMeter(I("dlMeter"),mbpsToAmount(Number(data[1]*(status==1?oscillate():1))),meterBk,dlColor,Number(data[6]),progColor);
 	I("ulText").textContent=(status==3&&data[2]==0)?"...":data[2];
@@ -188,6 +205,7 @@ function updateUI(forced){
 	drawMeter(I("pingMeter"),msToAmount(Number(data[3]*(status==2?oscillate():1))),meterBk,pingColor,Number(data[8]),progColor);
 	I("jitText").textContent=data[5];
 	drawMeter(I("jitMeter"),msToAmount(Number(data[5]*(status==2?oscillate():1))),meterBk,jitColor,Number(data[8]),progColor);
+	
 }
 function oscillate(){
 	return 1+0.02*Math.sin(Date.now()/100);
@@ -214,30 +232,68 @@ function initUI(){
 	I("pingText").textContent="";
 	I("jitText").textContent="";
 	I("ip").textContent="";
+	I("latitude").textContent="";
+	I("longitude").textContent="";
+	save_cookie();
 }
+
+function save_cookie(){
+	var l  = 7;
+	var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+	var cl = c.length;
+	var r = "";
+	var expire = new Date();
+	expire.setTime( expire.getTime() +  1000 * 3600 * 24 * 7);
+	for(var i=0; i<l; i++){
+	  r += c[Math.floor(Math.random()*cl)];
+	}
+	console.log(r);
+	document.cookie ='inonius='+ r + '; expires=' + expire.toUTCString();
+	console.log(document.cookie);
+}
+
+
+function geoFindMe() {
+  var output = document.getElementById("map");
+
+  if (!navigator.geolocation){
+	console.log("!navigator.geolocation")
+    return;
+  }
+
+  function success(position) {
+    location_value[0] = position.coords.latitude;
+    location_value[1] = position.coords.longitude;
+    location_value[0] = String(location_value[0].substr(0,7));
+    location_value[1] = String(location_value[1].substr(0,7));
+    console.log(location_value[0]);
+    console.log(location_value[1]);
+    var img = new Image();
+    img.src = "https://maps.googleapis.com/maps/api/staticmap?center=" + location_value[0] + "," + location_value[1] + "&zoom=13&size=300x300"
+    output.appendChild(img);
+
+
+  };
+
+  function error() {
+	console.log("error");
+  };
+	console.log("loding");
+
+
+  navigator.geolocation.getCurrentPosition(success, error);
+}
+
+
 
 
 
 </script>
 </head>
 <body>
-<h1>HTML5 Speedtest</h1>
+<h1>iNonius SpeedTest</h1>
 <div id="startStopBtn" onclick="startStop()"></div>
 <div id="test">
-	<div class="testGroup">
-		<div class="testArea">
-			<div class="testName">Download</div>
-			<canvas id="dlMeter" class="meter"></canvas>
-			<div id="dlText" class="meterText"></div>
-			<div class="unit">Mbps</div>
-		</div>
-		<div class="testArea">
-			<div class="testName">Upload</div>
-			<canvas id="ulMeter" class="meter"></canvas>
-			<div id="ulText" class="meterText"></div>
-			<div class="unit">Mbps</div>
-		</div>
-	</div>
 	<div class="testGroup">
 		<div class="testArea">
 			<div class="testName">Ping</div>
@@ -252,11 +308,36 @@ function initUI(){
 			<div class="unit">ms</div>
 		</div>
 	</div>
-	<div id="ipArea">
-		IP Address: <span id="ip"></span>
+
+
+
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Download</div>
+			<canvas id="dlMeter" class="meter"></canvas>
+			<div id="dlText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Upload</div>
+			<canvas id="ulMeter" class="meter"></canvas>
+			<div id="ulText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
 	</div>
 
+	<div id="ipArea">
+	<div>
+			IP Address: <span id="ip"></span>
+		</div>
+	<div id="latitude_area">
+			Latitude:   <span id="latitude"></span>	
+	</div>
+	<div id="longitude_area">
+			Longitude:   <span id="longitude"></span>	
+	</div>
+	<div id="map">
+			<span id="map"></span>	
+	</div>
+	
 
-</div>
-<a href="https://github.com/adolfintel/speedtest">Source code</a>
-<script type="text/javascript">setTimeout(initUI,100);</script>
