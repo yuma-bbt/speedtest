@@ -1,36 +1,28 @@
 <!DOCTYPE html>
-<html>
-<body>
-
-<script>
-
-navigator.connection.addEventListener('change', logNetworkInfo);
-
-function logNetworkInfo() {
-  // Network type that browser uses
-  log('         type: ' + navigator.connection.type);
-
-  // Effective bandwidth estimate
-  log('     downlink: ' + navigator.connection.downlink + 'Mb/s');
-
-  // Effective round-trip time estimate
-  log('          rtt: ' + navigator.connection.rtt + 'ms');
-
-  // Upper bound on the downlink speed of the first network hop
-  log('  downlinkMax: ' + navigator.connection.downlinkMax + 'Mb/s');
-
-  // Effective connection type determined using a combination of recently
-  // observed rtt and downlink values: ' +
-  log('effectiveType: ' + navigator.connection.effectiveType);
-  
-  // True if the user has requested a reduced data usage mode from the user
-  // agent.
-  log('     saveData: ' + navigator.connection.saveData);
-}
-
-logNetworkInfo();
-</script>
-
-</body>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>Open Street Map Test</title>
+	<style type="text/css">
+	   html,body{ margin: 0px; }
+	</style>
+	<script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
+	<script>
+		function MapInit(){
+			map = new OpenLayers.Map("MapCanvas");
+			var mapnik = new OpenLayers.Layer.OSM();
+			map.addLayer(mapnik);
+			var lonLat = new OpenLayers.LonLat(100.75, 35.69))
+				.transform(
+					new OpenLayers.Projection("EPSG:4326"), 
+					new OpenLayers.Projection("EPSG:900913")
+				);
+			map.setCenter(lonLat, 12); 
+		}
+	</script>
+  </head>
+  <body>
+    <div id="MapCanvas" style="width:350px;height:350px;"></div>
+    <script type="text/javascript">MapInit();</script>
+  </body>
 </html>
-
