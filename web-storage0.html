@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=no" />
+<title>iNonius SpeedTest</title>
+<style type="text/css">
+	html,body{
+		border:none; padding:0; margin:0;
+		background:#FFFFFF;
+		color:#202020;
+	}
+	body{
+		text-align:center;
+		font-family:"Roboto",sans-serif;
+	}
+	h1{
+		color:#404040;
+	}
+	#startStopBtn{
+		display:inline-block;
+		margin: auto;
+		color:#6060AA;
+		background-color:rgba(0,0,0,0);
+		border:0.15em solid #6060FF;
+		border-radius:0.3em;
+		transition:all 0.3s;
+		box-sizing:border-box;
+		width:8em; height:3em;
+		line-height:2.7em;
+		cursor:pointer;
+		box-shadow: 0 0 0 rgba(0,0,0,0.1), inset 0 0 0 rgba(0,0,0,0.1);
+	}
+	#startStopBtn:hover{
+		box-shadow: 0 0 2em rgba(0,0,0,0.1), inset 0 0 1em rgba(0,0,0,0.1);
+	}
+	#startStopBtn.running{
+		background-color:#FF3030;
+		border-color:#FF6060;
+		color:#FFFFFF;
+	}
+	#startStopBtn:before{
+		content:"Start";
+	}
+	#startStopBtn.running:before{
+		content:"Abort";
+	}
+	#test{
+		margin-top:2em;
+		margin-bottom:12em;
+	}
+	#iplink_area{
+			margin-left: auto ;
+	}
+	#ipv4Btn{
+		content:"IPv4";
+		display: inline-flexlist-item;
+  		flex-direction:         row-reverse;
+    		box-sizing:border-box;
+    		width:3em; height:3em;
+    		text-decoration: none;
+    		color: #FFF;
+    		background: #3366CC;
+    		border-bottom: solid 2px #d27d00;
+    		border-radius: 4px;
+    		box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 2px 2px rgba(0, 0, 0, 0.19);
+    		font-weight: bold;
+	}
+	#ipv4Btn:active {
+	       	content:"IPv4";
+		border-bottom: solid 2px #fd9535;
+		box-shadow: 0 0 2px rgba(0, 0, 0, 0.30);
+	}
+	
+	#ipv6Btn{
+		content:"IPv6";
+		display: inline-flexlist-item;
+		display:-webkit-flex-direction: row-reverse; /* Safari */
+  		flex-direction:         row-reverse;
+    		box-sizing:border-box;
+    		width:3em; height:3em;
+    		text-decoration: none;
+    		color: #FFF;
+    		background: #33CC00;
+    		border-bottom: solid 2px #d27d00;
+    		border-radius: 4px;
+    		box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 2px 2px rgba(0, 0, 0, 0.19);
+    		font-weight: bold;
+	}
+	#ipv6Btn:active {
+       	    content:"IPv6";
+	    border-bottom: solid 2px #fd9535;
+	    box-shadow: 0 0 2px rgba(0, 0, 0, 0.30);
+	}
+	
+
+	#map { height: 400px;}
+	div.testArea{
+		display:inline-block;
+		width:16em;
+		height:12.5em;
+		position:relative;
+		box-sizing:border-box;
+	}
+	div.testName{
+		position:absolute;
+		top:0.1em; left:0;
+		width:100%;
+		font-size:1.4em;
+		z-index:9;
+	}
+	div.meterText{
+		position:absolute;
+		bottom:1.55em; left:0;
+		width:100%;
+		font-size:2.5em;
+		z-index:9;
+	}
+	div.meterText:empty:before{
+		content:"0.00";
+	}
+	div.unit{
+		position:absolute;
+		bottom:2em; left:0;
+		width:100%;
+		z-index:9;
+	}
+	div.testArea canvas{
+		position:absolute;
+		top:0; left:0; width:100%; height:100%;
+		z-index:1;
+	}
+	div.testGroup{
+		display:inline-block;
+	}
+
+	@media all and (max-width:65em){
+		body{
+			font-size:1.5vw;
+		}
+	}
+	@media all and (max-width:40em){
+		body{
+			font-size:0.8em;
+		}
+		div.testGroup{
+			display:block;
+			margin: 0 auto;
+		}
+	}
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js" integrity="sha512-C7BBF9irt5R7hqbUm2uxtODlUVs+IsNu2UULGuZN7gM+k/mmeG4xvIEac01BtQa4YIkUpp23zZC4wIwuXaPMQA==" crossorigin=""></script>
+<script type="text/javascript" >
+
+function I(id){return document.getElementById(id);}
+var meterBk="#E0E0E0";
+var dlColor="#6060AA",
+	ulColor="#309030",
+	pingColor="#AA6060",
+	jitColor="#AA6060";
+var progColor="#EEEEEE";
+
+
+
+var dlText = "";
+var ulText="";
+var pingText="";
+var jitText="";
+var ip="";
+var latitude="";
+var longitude="";
+
+
+var user_id_val="";
+
+//localStorage.clear()
+
+
+
+
+var location_value = new Array(2);
+
+//CODE FOR GAUGES
+function drawMeter(c,amount,bk,fg,progress,prog){
+	var ctx=c.getContext("2d");
+	var dp=window.devicePixelRatio||1;
+	var cw=c.clientWidth*dp, ch=c.clientHeight*dp;
+	var sizScale=ch*0.0055;
+	if(c.width==cw&&c.height==ch){
+		ctx.clearRect(0,0,cw,ch);
+	}else{
+		c.width=cw;
+		c.height=ch;
+	}
+	ctx.beginPath();
+	ctx.strokeStyle=bk;
+	ctx.lineWidth=16*sizScale;
+	ctx.arc(c.width/2,c.height-58*sizScale,c.height/1.8-ctx.lineWidth,-Math.PI*1.1,Math.PI*0.1);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.strokeStyle=fg;
+	ctx.lineWidth=16*sizScale;
+	ctx.arc(c.width/2,c.height-58*sizScale,c.height/1.8-ctx.lineWidth,-Math.PI*1.1,amount*Math.PI*1.2-Math.PI*1.1);
+	ctx.stroke();
+	if(typeof progress !== "undefined"){
+		ctx.fillStyle=prog;
+		ctx.fillRect(c.width*0.3,c.height-16*sizScale,c.width*0.4*progress,4*sizScale);
+	}
+}
+function mbpsToAmount(s){
+	return 1-(1/(Math.pow(1.3,Math.sqrt(s))));
+}
+function msToAmount(s){
+	return 1-(1/(Math.pow(1.08,Math.sqrt(s))));
+}
+
+//SPEEDTEST AND UI CODE
+var w=null; //speedtest worker
+var data=null; //data from worker
+var location_datas=null;//add code
+
+
+function startStop(){
+	console.log("startStop is called")
+	//read_before_result();
+	if(w!=null){
+		console.log("w!=null");
+		console.log("w = " + w);
+		//speedtest is running, abort
+		w.postMessage('abort');
+		w=null;
+		data=null;
+		I("startStopBtn").className="";
+		initUI();
+	}else{
+		//test is not running, begin
+		console.log("startStop() else statement");
+		console.log("w = " + w);
+		//speedtest is running, abort
+		test_latitude=geoFindMe();//added function
+		w = new Worker('speedtest_worker.js');
+		console.log("new worker is called = " + w)
+                //w.postMessage('start {"telemetry_level":"basic"}'); //Add optional parameters (see doc.md)
+                w.postMessage('start {"telemetry_level":"full"}'); //Add optional parameters (see doc.md)
+		w.postMessage('start'); //Add optional parameters as a JSON object to this command
+		//I("startStopBtn").className="running";
+		w.onmessage=function(e){
+			data=e.data.split(';');
+			var status=Number(data[0]);
+			if(status>=4){
+				//test completed
+				I("startStopBtn").className="";
+				w=null;
+				updateUI(true);
+				save_before_result();
+				console.log(document.getElementById("ip").value);
+			}
+		};
+	w.postMessage("latitude:" + String(location_value[0])); //post latitude  datas
+	w.postMessage("longitude:" + String(location_value[1])); //post longitude datas
+	w.postMessage("cookie:" + String(document.cookie)); //post longitude datas
+	w.postMessage("user_id:" +String(document.user_id));
+	save_before_result();
+	}
+}
+//this function reads the data sent back by the worker and updates the UI
+function updateUI(forced){
+	if(!forced&&(!data||!w)) return;
+	var status=Number(data[0]);
+	I("ip").textContent=data[4];
+	I("latitude").textContent=location_value[0];
+	I("longitude").textContent=location_value[1];
+
+	I("dlText").textContent=(status==1&&data[1]==0)?"...":data[1];
+	drawMeter(I("dlMeter"),mbpsToAmount(Number(data[1]*(status==1?oscillate():1))),meterBk,dlColor,Number(data[6]),progColor);
+	I("ulText").textContent=(status==3&&data[2]==0)?"...":data[2];
+	drawMeter(I("ulMeter"),mbpsToAmount(Number(data[2]*(status==3?oscillate():1))),meterBk,ulColor,Number(data[7]),progColor);
+	I("pingText").textContent=data[3];
+	drawMeter(I("pingMeter"),msToAmount(Number(data[3]*(status==2?oscillate():1))),meterBk,pingColor,Number(data[8]),progColor);
+	I("jitText").textContent=data[5];
+	drawMeter(I("jitMeter"),msToAmount(Number(data[5]*(status==2?oscillate():1))),meterBk,jitColor,Number(data[8]),progColor);
+	
+}
+function oscillate(){
+	return 1+0.02*Math.sin(Date.now()/100);
+}
+//poll the status from the worker (this will call updateUI)
+setInterval(function(){
+	if(w) w.postMessage('status');
+},200);
+//update the UI every frame
+window.requestAnimationFrame=window.requestAnimationFrame||window.webkitRequestAnimationFrame||window.mozRequestAnimationFrame||window.msRequestAnimationFrame||(function(callback,element){setTimeout(callback,1000/60);});
+function frame(){
+	requestAnimationFrame(frame);
+	updateUI();
+}
+frame(); //start frame loop
+//function to (re)initialize UI
+window.onload =  function read_before_result() { 
+			I("before_dlText").textContent    =  localStorage.getItem("dlText");
+			I("before_ulText").textContent    =  localStorage.getItem("ulText");
+			I("before_pingText").textContent  =  localStorage.getItem("pingText");
+			I("before_jitText").textContent   =  localStorage.getItem("jitText");
+			I("before_ip").textContent        =  localStorage.getItem("ip");
+			I("before_latitude").textContent  =  localStorage.getItem("latitude");
+			I("before_longitude").textContent =  localStorage.getItem("longitude");
+}
+
+function save_before_result() { 
+        		localStorage.setItem("dlText",document.getElementById("dlText").innerHTML);
+			localStorage.setItem("ulText",document.getElementById("ulText").innerHTML);
+        		localStorage.setItem("pingText",document.getElementById("pingText").innerHTML);
+        		localStorage.setItem("jitText",document.getElementById("jitText").innerHTML);
+        		localStorage.setItem("ip",document.getElementById("ip").innerHTML);
+        		localStorage.setItem("latitude",document.getElementById("latitude").innerHTML);
+        		localStorage.setItem("longitude",document.getElementById("longitude").innerHTML);
+			
+			if(localStorage.getItem("user_id")==null){
+				console.log("hogehogehoge");
+				var l  = 7;
+				var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+				var cl = c.length;
+				var r = "";
+				for(var i=0; i<l; i++){
+					r += c[Math.floor(Math.random()*cl)];
+				}
+				localStorage.setItem("user_id",r)	
+				console.log("user_id:" + localStorage.getItem("user_id"));
+			}
+			else{
+				user_id_val = localStorage.getItem("user_id");
+				console.log("piyopiyo");
+			}
+
+}
+
+function initUI(){
+	drawMeter(I("dlMeter"),0,meterBk,dlColor,0);
+	drawMeter(I("ulMeter"),0,meterBk,ulColor,0);
+	drawMeter(I("pingMeter"),0,meterBk,pingColor,0);
+	drawMeter(I("jitMeter"),0,meterBk,jitColor,0);
+
+	I("dlText").textContent="";
+	I("ulText").textContent="";
+	I("pingText").textContent="";
+	I("jitText").textContent="";
+	I("ip").otextContent="";
+	I("latitude").textContent="";
+	I("longitude").textContent="";
+
+	ip=I("ip");
+	latitude=document.getElementById("latitude");
+	longitude=I("longitude");
+	dlText=I("dlText");
+	ulText=I("ulText");
+	jitText=I("jitText");
+
+	get_user_id();
+	save_before_result();
+	save_cookie();
+
+}
+
+function save_cookie(){
+	if (document.cookie==null)
+	{
+	var l  = 7;
+	var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+	var cl = c.length;
+	var r = "";
+	var expire = new Date();
+	expire.setTime( expire.getTime() +  1000 * 3600 * 24 * 7);
+	for(var i=0; i<l; i++){
+	  r += c[Math.floor(Math.random()*cl)];
+	}
+	document.cookie ='inonius='+ r + '; expires=' + expire.toUTCString();
+	}
+}
+
+function get_user_id(){ 
+	if(localStorage.getItem("user_id")==null){
+		console.log("hogehogehoge");
+		var l  = 7;
+        	var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+        	var cl = c.length;
+        	var r = "";
+     		for(var i=0; i<l; i++){
+          	 r += c[Math.floor(Math.random()*cl)];
+        	}
+		localStorage.setItem("user_id",r)	
+		localStorage.getItem("user_id");
+	}
+	else{
+		user_id_val = localStorage.getItem("user_id");
+		console.log("piyopiyo");
+	}
+}
+
+
+
+function read_sql(){
+	
+  sql = new XMLHttpRequest()
+  sql.onload = function () { console.log('TELEMETRY OL '+sql.responseText) }
+  sql.onerror = function () { console.log('TELEMETRY ERROR '+sql) }
+  sql.open('POST', "rank.php" +"?r="+Math.random(), true);
+
+}
+
+
+function openURL_v6(){
+	location.href = "https://ipv6.inonius.net/ipv6/speed-test.html";
+}
+
+function openURL_v4(){
+	location.href = "https://ipv4.inonius.net/ipv4/speed-test.html";
+}
+
+
+function geoFindMe() {
+  var output = document.getElementById("map");
+
+  if (!navigator.geolocation){
+	output.innerHTML  = "<p>Geolocation is not supported by your browser</p>";
+	console.log("!navigator.geolocation")
+    return;
+  }
+
+  function success(position) {
+    location_value[0] = String(position.coords.latitude);
+    location_value[1] = String(position.coords.longitude);
+
+
+    var mymap = L.map('map').setView([location_value[0],location_value[1]], 16);
+
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    maxZoom: 18,
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    id: 'mapbox.streets'
+}).addTo(mymap);
+
+    L.marker([location_value[0], location_value[1]]).addTo(mymap)
+	.bindPopup("<b>You are here.</b>").openPopup();
+var popup = L.popup();
+
+
+
+  };
+
+  function error() {
+	console.log("error");
+	output.innerHTML = "Unable to retrieve your location";
+  };
+	console.log("loding");
+  //output.innerHTML = "<p>Locating...</p>";
+
+
+
+  navigator.geolocation.getCurrentPosition(success, error);
+}
+
+window.onload = startStop();
+
+
+
+
+</script>
+</head>
+<body>
+<h1>iNonius SpeedTest IPv4</h1>
+<div class= "iplink_area">
+	<div id="ipv6Btn" onclick="openURL_v6()">IPv6</div>
+</div>
+
+<div id="startStopBtn "></div>
+
+<div id="test">
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Ping</div>
+			<canvas id="pingMeter" class="meter"></canvas>
+			<div id="pingText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Jitter</div>
+			<canvas id="jitMeter" class="meter"></canvas>
+			<div id="jitText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+	</div>
+
+
+
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Download</div>
+			<canvas id="dlMeter" class="meter"></canvas>
+			<div id="dlText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Upload</div>
+			<canvas id="ulMeter" class="meter"></canvas>
+			<div id="ulText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+	</div>
+
+	<div id="ipArea">
+	<div>
+			IP Address: <span id="ip"></span>
+		</div>
+	<div id="latitude_area">
+			Latitude:   <span id="latitude"></span>	
+	</div>
+	<div id="longitude_area">
+			Longitude:   <span id="longitude"></span>
+	</div>
+	<div id="map">
+			<div id="map"></div>
+	</div>
+
+<h1>Last Result</h1>
+<div id="test">
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Ping</div>
+			<canvas id="before_pingMeter" class="meter"></canvas>
+			<div id="before_pingText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Jitter</div>
+			<canvas id="before_jitMeter" class="meter"></canvas>
+			<div id="before_jitText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+	</div>
+
+
+
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Download</div>
+			<canvas id="before_dlMeter" class="meter"></canvas>
+			<div id="before_dlText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Upload</div>
+			<canvas id="before_ulMeter" class="meter"></canvas>
+			<div id="before_ulText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+	</div>
+
+	<div id="ipArea">
+	<div>
+			IP Address: <span id="before_ip"></span>
+		</div>
+	<div id="latitude_area">
+			Latitude:   <span id="before_latitude"></span>	
+	</div>
+	<div id="longitude_area">
+			Longitude:   <span id="before_longitude"></span>
+	</div>
+	<div id="map">
+			<div id="map"></div>
+	</div>
+
+
