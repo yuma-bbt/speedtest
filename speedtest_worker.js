@@ -79,7 +79,6 @@ function url_sep (url) { return url.match(/\?/) ? '&' : '?'; }
 this.addEventListener('message', function (e) {
   var params = e.data.split(' ')
 
-  console.log("params[0] =" + params[0])
   //if(typeof(params[0].indexOf(".")) ===  judgement_value) { 
   if(typeof(params[0].indexOf(":")) === judgement_value && typeof(params[0].indexOf("latitude")) === judgement_value) {
 	var locations;
@@ -107,9 +106,6 @@ this.addEventListener('message', function (e) {
   if (params[0] === 'status') { // return status
     postMessage(testStatus + ';' + dlStatus + ';' + ulStatus + ';' + pingStatus + ';' + clientIp + ';' + jitterStatus + ';' + dlProgress + ';' + ulProgress + ';' + pingProgress + ';' + latitudeStatus + ';' + longitudeStatus +';'+ cookieStatus)
 
-    console.log("dlStatus="+dlStatus)
-    console.log("latitudeStatus="+latitudeStatus)
-    console.log("longitudeStatus="+longitudeStatus)
   }
 
   if (params[0] === 'start' && testStatus === -1) { // start new test
@@ -221,7 +217,6 @@ function getIp (done) {
 // download test, calls done function when it's over
 var dlCalled = false // used to prevent multiple accidental calls to dlTest
 function dlTest (done) {
-  console.log("dlTest is called")
   tlog('dlTest')
   if (dlCalled) return; else dlCalled = true // dlTest already called?
   var totLoaded = 0.0, // total number of loaded bytes
@@ -314,7 +309,6 @@ reqsmall = new Blob(reqsmall)
 var ulCalled = false // used to prevent multiple accidental calls to ulTest
 function ulTest (done) {
   tlog('ulTest')
-  console.log("ulTest is called")
   if (ulCalled) return; else ulCalled = true // ulTest already called?
   var totLoaded = 0.0, // total number of transmitted bytes
     startT = new Date().getTime(), // timestamp when test was started
@@ -469,10 +463,6 @@ function pingTest (done) {
       }
       pingStatus = ping.toFixed(2)
       jitterStatus = jitter.toFixed(2)
-      console.log("pingStatus="+pingStatus)
-      console.log("typeof(pingStatus)="+typeof(pingStatus))
-      console.log("jitterStatus="+jitterStatus)
-      console.log("typeof(jitterStatus)="+typeof(jitterStatus))
       i++
       tlog('PING: '+pingStatus+' JITTER: '+jitterStatus)
       if (i < settings.count_ping) doPing(); else {pingProgress = 1; done()} // more pings to do?
@@ -506,11 +496,11 @@ function sendTelemetry(){
   xhr.onload = function () { console.log('TELEMETRY OL '+xhr.responseText) }
   xhr.onerror = function () { console.log('TELEMETRY ERROR '+xhr) }
   xhr.open('POST', settings.url_telemetry+"?r="+Math.random(), true);
+  settings.url_dl + url_sep(settings.url_dl)
   console.log(settings.url_telemetry);
   try{
     var fd = new FormData()
     fd.append('dl', dlStatus)
-    console.log('dl=' + dlStatus + "_dl-type=" + typeof(dlStatus))
     fd.append('ul', ulStatus)
     fd.append('ping', pingStatus)
     fd.append('jitter', jitterStatus)
@@ -518,12 +508,6 @@ function sendTelemetry(){
     fd.append('latitude', latitudeStatus)
     fd.append('longitude', longitudeStatus)
     fd.append('cookie', cookieStatus)
-    console.log('ul=' + ulStatus + "_ul-type=" + typeof(ulStatus))
-    console.log('ping=' + pingStatus + "_ping-type=" + typeof(pingStatus))
-    console.log('jitter=' + jitterStatus + "_jitter-type=" + typeof(jitterStatus))
-    console.log('latitude=' + latitudeStatus + "_latitude-type=" + typeof(latitudeStatus))
-    console.log('longiitude=' + longitudeStatus + "_longitude-type=" + typeof(longitudeStatus))
-    console.log('cookie=' + cookieStatus + "_cookie-type=" + typeof(cookieStatus))
     xhr.send(fd)
   }catch(ex){
     var postData = 'dl='+encodeURIComponent(dlStatus)+'&ul='+encodeURIComponent(ulStatus)+'&ping='+encodeURIComponent(pingStatus)+'&jitter='+encodeURIComponent(jitterStatus)+'&log='+encodeURIComponent(settings.telemetry_level>1?log:'')+'&latitude'+encodeURIComponent(latitudeStatus)+'&longitude'+encodeURIComponent(longitudeStatus)+'&cookie'+encodeURIComponent(cookieStatus)
