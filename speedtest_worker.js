@@ -308,7 +308,6 @@ reqsmall = new Blob(reqsmall)
 var ulCalled = false // used to prevent multiple accidental calls to ulTest
 function ulTest (done) {
   tlog('ulTest')
-  console.log("ulTest is called")
   if (ulCalled) return; else ulCalled = true // ulTest already called?
   var totLoaded = 0.0, // total number of transmitted bytes
     startT = new Date().getTime(), // timestamp when test was started
@@ -495,6 +494,11 @@ function sendTelemetry(){
   xhr.onload = function () { console.log('TELEMETRY OL '+xhr.responseText) }
   xhr.onerror = function () { console.log('TELEMETRY ERROR '+xhr) }
   xhr.open('POST', settings.url_telemetry+"?r="+Math.random(), true);
+<<<<<<< HEAD
+=======
+  settings.url_dl + url_sep(settings.url_dl)
+  console.log(settings.url_telemetry);
+>>>>>>> 2f81112cabc6cec87e92f230eb915294c0d19a10
   try{
     var fd = new FormData()
     fd.append('dl', dlStatus)
