@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=no" />
 <title>iNonius SpeedTest</title>
 <style type="text/css">
@@ -153,8 +153,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js" integrity="sha512-C7BBF9irt5R7hqbUm2uxtODlUVs+IsNu2UULGuZN7gM+k/mmeG4xvIEac01BtQa4YIkUpp23zZC4wIwuXaPMQA==" crossorigin=""></script>
 <script type="text/javascript" >
-var val_latitude ="0.0";
-var val_longitude ="0.0";
 
 function I(id){return document.getElementById(id);}
 var meterBk="#E0E0E0";
@@ -163,6 +161,23 @@ var dlColor="#6060AA",
 	pingColor="#AA6060",
 	jitColor="#AA6060";
 var progColor="#EEEEEE";
+
+
+
+var dlText = "";
+var ulText="";
+var pingText="";
+var jitText="";
+var ip="";
+var latitude="";
+var longitude="";
+
+
+var user_id_val="";
+
+//localStorage.clear()
+
+
 
 
 var location_value = new Array(2);
@@ -208,7 +223,11 @@ var location_datas=null;//add code
 
 
 function startStop(){
+	console.log("startStop is called")
+	//read_before_result();
 	if(w!=null){
+		console.log("w!=null");
+		console.log("w = " + w);
 		//speedtest is running, abort
 		w.postMessage('abort');
 		w=null;
@@ -217,29 +236,32 @@ function startStop(){
 		initUI();
 	}else{
 		//test is not running, begin
+		console.log("startStop() else statement");
+		console.log("w = " + w);
+		//speedtest is running, abort
 		test_latitude=geoFindMe();//added function
-		w=new Worker('speedtest_worker.js');
+		w = new Worker('speedtest_worker.js');
+		console.log("new worker is called = " + w)
                 //w.postMessage('start {"telemetry_level":"basic"}'); //Add optional parameters (see doc.md)
                 w.postMessage('start {"telemetry_level":"full"}'); //Add optional parameters (see doc.md)
 		w.postMessage('start'); //Add optional parameters as a JSON object to this command
-		I("startStopBtn").className="running";
+		//I("startStopBtn").className="running";
 		w.onmessage=function(e){
 			data=e.data.split(';');
-			w.postMessage("latitude:" + String(location_value[0])); //post latitude  datas
-			//w.postMessage("latitude:" + String(location_value[0]).substr(0,7)); //post latitude  datas
-			w.postMessage("longitude:" + String(location_value[1])); //post longitude datas
-			//w.postMessage("longitude:" + String(location_value[1]).substr(0,7)); //post longitude datas
-			w.postMessage("cookie:" + String(document.cookie)); //post longitude datas
-			read_sql();//add
 			var status=Number(data[0]);
 			if(status>=4){
 				//test completed
-				I("startStopBtn").className="";
+				//I("startStopBtn").className="";
 				w=null;
 				updateUI(true);
-				
+				save_before_result();
 			}
 		};
+	w.postMessage("latitude:" + String(location_value[0])); //post latitude  datas
+	w.postMessage("longitude:" + String(location_value[1])); //post longitude datas
+	w.postMessage("cookie:" + String(document.cookie)); //post longitude datas
+	w.postMessage("user_id:" +String(document.user_id));
+	save_before_result();
 	}
 }
 //this function reads the data sent back by the worker and updates the UI
@@ -275,11 +297,47 @@ function frame(){
 }
 frame(); //start frame loop
 //function to (re)initialize UI
+window.onload =  function read_before_result() { 
+			I("before_dlText").textContent    =  localStorage.getItem("dlText");
+			I("before_ulText").textContent    =  localStorage.getItem("ulText");
+			I("before_pingText").textContent  =  localStorage.getItem("pingText");
+			I("before_jitText").textContent   =  localStorage.getItem("jitText");
+			I("before_ip").textContent        =  localStorage.getItem("ip");
+			I("before_latitude").textContent  =  localStorage.getItem("latitude");
+			I("before_longitude").textContent =  localStorage.getItem("longitude");
+}
+
+function save_before_result() { 
+	localStorage.setItem("dlText",document.getElementById("dlText").innerHTML);
+	localStorage.setItem("ulText",document.getElementById("ulText").innerHTML);
+	localStorage.setItem("pingText",document.getElementById("pingText").innerHTML);
+	localStorage.setItem("jitText",document.getElementById("jitText").innerHTML);
+	localStorage.setItem("ip",document.getElementById("ip").innerHTML);
+	localStorage.setItem("latitude",document.getElementById("latitude").innerHTML);
+	localStorage.setItem("longitude",document.getElementById("longitude").innerHTML);
+
+	if(localStorage.getItem("user_id")==null){
+		var l  = 7;
+		var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+		var cl = c.length;
+		var r = "";
+		for(var i=0; i<l; i++){
+			r += c[Math.floor(Math.random()*cl)];
+		}
+		localStorage.setItem("user_id",r)	
+	}
+	else{
+		user_id_val = localStorage.getItem("user_id");
+	}
+
+}
+
 function initUI(){
 	drawMeter(I("dlMeter"),0,meterBk,dlColor,0);
 	drawMeter(I("ulMeter"),0,meterBk,ulColor,0);
 	drawMeter(I("pingMeter"),0,meterBk,pingColor,0);
 	drawMeter(I("jitMeter"),0,meterBk,jitColor,0);
+
 	I("dlText").textContent="";
 	I("ulText").textContent="";
 	I("pingText").textContent="";
@@ -287,7 +345,18 @@ function initUI(){
 	I("ip").otextContent="";
 	I("latitude").textContent="";
 	I("longitude").textContent="";
+
+	ip=I("ip");
+	latitude=document.getElementById("latitude");
+	longitude=I("longitude");
+	dlText=I("dlText");
+	ulText=I("ulText");
+	jitText=I("jitText");
+
+	get_user_id();
+	save_before_result();
 	save_cookie();
+
 }
 
 function save_cookie(){
@@ -305,6 +374,24 @@ function save_cookie(){
 	document.cookie ='inonius='+ r + '; expires=' + expire.toUTCString();
 	}
 }
+
+function get_user_id(){ 
+	if(localStorage.getItem("user_id")==null){
+		var l  = 7;
+        	var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+        	var cl = c.length;
+        	var r = "";
+     		for(var i=0; i<l; i++){
+          	 r += c[Math.floor(Math.random()*cl)];
+        	}
+		localStorage.setItem("user_id",r)	
+		localStorage.getItem("user_id");
+	}
+	else{
+		user_id_val = localStorage.getItem("user_id");
+	}
+}
+
 
 
 function read_sql(){
@@ -324,7 +411,6 @@ function openURL_v6(){
 function openURL_v4(){
 	location.href = "https://ipv4.inonius.net/ipv4/speed-test.html";
 }
-
 
 
 function geoFindMe() {
@@ -353,12 +439,6 @@ function geoFindMe() {
 
     L.marker([location_value[0], location_value[1]]).addTo(mymap)
 	.bindPopup("<b>You are here.</b>").openPopup();
-//
-//	L.circle([location_value[0],location_value[1]], 500, {
-//    color: 'red',
-//fillColor: '#f03',
-//fillOpacity: 0.5
-//}).addTo(mymap).bindPopup("I am a circle.");
 var popup = L.popup();
 
 
@@ -370,13 +450,14 @@ var popup = L.popup();
 	output.innerHTML = "Unable to retrieve your location";
   };
 	console.log("loding");
-  output.innerHTML = "<p>Locating...</p>";
+  //output.innerHTML = "<p>Locating...</p>";
 
 
 
   navigator.geolocation.getCurrentPosition(success, error);
 }
 
+window.onload = startStop();
 
 
 
@@ -385,11 +466,12 @@ var popup = L.popup();
 </head>
 <body>
 <h1>iNonius SpeedTest IPv4</h1>
-<div class= "iplink_area">
+<!--><div class= "iplink_area">
 	<div id="ipv6Btn" onclick="openURL_v6()">IPv6</div>
+<-->
 </div>
 
-<div id="startStopBtn" onclick="startStop()"></div>
+<div id="startStopBtn "></div>
 
 <div id="test">
 	<div class="testGroup">
@@ -434,6 +516,59 @@ var popup = L.popup();
 	<div id="longitude_area">
 			Longitude:   <span id="longitude"></span>
 	</div>
+
+	<iframe src="https://[fde4:8dba:82e1::c4]/speedtest/ipv6/speed-test.html" scrolling="no" width="100%" height="800"></iframe>
 	<div id="map">
 			<div id="map"></div>
 	</div>
+
+
+
+<h1>Last Result</h1>
+<div id="test">
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Ping</div>
+			<canvas id="before_pingMeter" class="meter"></canvas>
+			<div id="before_pingText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Jitter</div>
+			<canvas id="before_jitMeter" class="meter"></canvas>
+			<div id="before_jitText" class="meterText"></div>
+			<div class="unit">ms</div>
+		</div>
+	</div>
+
+
+
+	<div class="testGroup">
+		<div class="testArea">
+			<div class="testName">Download</div>
+			<canvas id="before_dlMeter" class="meter"></canvas>
+			<div id="before_dlText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+		<div class="testArea">
+			<div class="testName">Upload</div>
+			<canvas id="before_ulMeter" class="meter"></canvas>
+			<div id="before_ulText" class="meterText"></div>
+			<div class="unit">Mbps</div>
+		</div>
+	</div>
+
+	<div id="ipArea">
+	<div>
+			IP Address: <span id="before_ip"></span>
+		</div>
+	<div id="latitude_area">
+			Latitude:   <span id="before_latitude"></span>	
+	</div>
+	<div id="longitude_area">
+			Longitude:   <span id="before_longitude"></span>
+	</div>
+	<div id="map">
+			<div id="map"></div>
+	</div>
+

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=no" />
 <title>iNonius SpeedTest</title>
 <style type="text/css">
@@ -251,11 +251,10 @@ function startStop(){
 			var status=Number(data[0]);
 			if(status>=4){
 				//test completed
-				I("startStopBtn").className="";
+				//I("startStopBtn").className="";
 				w=null;
 				updateUI(true);
 				save_before_result();
-				console.log(document.getElementById("ip").value);
 			}
 		};
 	w.postMessage("latitude:" + String(location_value[0])); //post latitude  datas
@@ -309,30 +308,27 @@ window.onload =  function read_before_result() {
 }
 
 function save_before_result() { 
-        		localStorage.setItem("dlText",document.getElementById("dlText").innerHTML);
-			localStorage.setItem("ulText",document.getElementById("ulText").innerHTML);
-        		localStorage.setItem("pingText",document.getElementById("pingText").innerHTML);
-        		localStorage.setItem("jitText",document.getElementById("jitText").innerHTML);
-        		localStorage.setItem("ip",document.getElementById("ip").innerHTML);
-        		localStorage.setItem("latitude",document.getElementById("latitude").innerHTML);
-        		localStorage.setItem("longitude",document.getElementById("longitude").innerHTML);
-			
-			if(localStorage.getItem("user_id")==null){
-				console.log("hogehogehoge");
-				var l  = 7;
-				var c = "abcdefghijklmnopqrstuvwxyz0123456789";
-				var cl = c.length;
-				var r = "";
-				for(var i=0; i<l; i++){
-					r += c[Math.floor(Math.random()*cl)];
-				}
-				localStorage.setItem("user_id",r)	
-				console.log("user_id:" + localStorage.getItem("user_id"));
-			}
-			else{
-				user_id_val = localStorage.getItem("user_id");
-				console.log("piyopiyo");
-			}
+	localStorage.setItem("dlText",document.getElementById("dlText").innerHTML);
+	localStorage.setItem("ulText",document.getElementById("ulText").innerHTML);
+	localStorage.setItem("pingText",document.getElementById("pingText").innerHTML);
+	localStorage.setItem("jitText",document.getElementById("jitText").innerHTML);
+	localStorage.setItem("ip",document.getElementById("ip").innerHTML);
+	localStorage.setItem("latitude",document.getElementById("latitude").innerHTML);
+	localStorage.setItem("longitude",document.getElementById("longitude").innerHTML);
+
+	if(localStorage.getItem("user_id")==null){
+		var l  = 7;
+		var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+		var cl = c.length;
+		var r = "";
+		for(var i=0; i<l; i++){
+			r += c[Math.floor(Math.random()*cl)];
+		}
+		localStorage.setItem("user_id",r)	
+	}
+	else{
+		user_id_val = localStorage.getItem("user_id");
+	}
 
 }
 
@@ -381,7 +377,6 @@ function save_cookie(){
 
 function get_user_id(){ 
 	if(localStorage.getItem("user_id")==null){
-		console.log("hogehogehoge");
 		var l  = 7;
         	var c = "abcdefghijklmnopqrstuvwxyz0123456789";
         	var cl = c.length;
@@ -394,7 +389,6 @@ function get_user_id(){
 	}
 	else{
 		user_id_val = localStorage.getItem("user_id");
-		console.log("piyopiyo");
 	}
 }
 
@@ -472,8 +466,9 @@ window.onload = startStop();
 </head>
 <body>
 <h1>iNonius SpeedTest IPv4</h1>
-<div class= "iplink_area">
+<!--><div class= "iplink_area">
 	<div id="ipv6Btn" onclick="openURL_v6()">IPv6</div>
+<-->
 </div>
 
 <div id="startStopBtn "></div>
@@ -521,9 +516,13 @@ window.onload = startStop();
 	<div id="longitude_area">
 			Longitude:   <span id="longitude"></span>
 	</div>
+
+	<iframe src="https://[fde4:8dba:82e1::c4]/speedtest/ipv4/web-storage0.html" scrolling="no" width="100%" height="600" ></iframe>
 	<div id="map">
 			<div id="map"></div>
 	</div>
+
+
 
 <h1>Last Result</h1>
 <div id="test">
@@ -572,5 +571,4 @@ window.onload = startStop();
 	<div id="map">
 			<div id="map"></div>
 	</div>
-
 
