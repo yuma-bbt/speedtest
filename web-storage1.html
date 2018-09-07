@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8"/>
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=no" />
 <title>iNonius SpeedTest</title>
 <style type="text/css">
@@ -175,11 +175,6 @@ var longitude="";
 
 var user_id_val="";
 
-//localStorage.clear()
-
-
-
-
 var location_value = new Array(2);
 
 //CODE FOR GAUGES
@@ -255,6 +250,7 @@ function startStop(){
 				w=null;
 				updateUI(true);
 				save_before_result();
+				console.log(document.getElementById("ip").value);
 			}
 		};
 	w.postMessage("latitude:" + String(location_value[0])); //post latitude  datas
@@ -308,29 +304,68 @@ window.onload =  function read_before_result() {
 }
 
 function save_before_result() { 
-	localStorage.setItem("dlText",document.getElementById("dlText").innerHTML);
-	localStorage.setItem("ulText",document.getElementById("ulText").innerHTML);
-	localStorage.setItem("pingText",document.getElementById("pingText").innerHTML);
-	localStorage.setItem("jitText",document.getElementById("jitText").innerHTML);
-	localStorage.setItem("ip",document.getElementById("ip").innerHTML);
-	localStorage.setItem("latitude",document.getElementById("latitude").innerHTML);
-	localStorage.setItem("longitude",document.getElementById("longitude").innerHTML);
-
-	if(localStorage.getItem("user_id")==null){
-		var l  = 7;
-		var c = "abcdefghijklmnopqrstuvwxyz0123456789";
-		var cl = c.length;
-		var r = "";
-		for(var i=0; i<l; i++){
-			r += c[Math.floor(Math.random()*cl)];
-		}
-		localStorage.setItem("user_id",r)	
-	}
-	else{
-		user_id_val = localStorage.getItem("user_id");
-	}
+        		localStorage.setItem("dlText",document.getElementById("dlText").innerHTML);
+			localStorage.setItem("ulText",document.getElementById("ulText").innerHTML);
+        		localStorage.setItem("pingText",document.getElementById("pingText").innerHTML);
+        		localStorage.setItem("jitText",document.getElementById("jitText").innerHTML);
+        		localStorage.setItem("ip",document.getElementById("ip").innerHTML);
+        		localStorage.setItem("latitude",document.getElementById("latitude").innerHTML);
+        		localStorage.setItem("longitude",document.getElementById("longitude").innerHTML);
+			
+			if(localStorage.getItem("user_id")==null){
+				var l  = 7;
+				var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+				var cl = c.length;
+				var r = "";
+				for(var i=0; i<l; i++){
+					r += c[Math.floor(Math.random()*cl)];
+				}
+				localStorage.setItem("user_id",r)	
+			}
+			else{
+				user_id_val = localStorage.getItem("user_id");
+			}
 
 }
+
+function read_10_result(){
+	var storage_array =  [];
+
+	var tmp_dltext 		=[];
+	var tmp_ultext 		=[];
+	var tmp_pingtext	=[];
+	var tmp_jittext		=[];
+	var tmp_ip		=[];
+	var tmp_latitude	=[];
+	var tmp_longitude	=[];
+	
+
+	var num = 9;
+	for(num; num >=  0 ; num--) {
+		tmp_dltext.push(localStorage.getItem("dlText"   + String(storage_array[num]) ));
+		tmp_ultext.push(localStorage.getItem("ulText"   + String(storage_array[num]) ));
+		tmp_pingtext.push(localStorage.getItem("pingText" + String(storage_array[num])));
+		tmp_jittext.push(localStorage.getItem("jitText"  + String(storage_array[num])) );
+		tmp_ip.push(localStorage.getItem("ip"       + String(storage_array[num])));
+		tmp_latitude.push(localStorage.getItem("latitude" + String(storage_array[num])));
+		tmp_longitude.push(localStorage.getItem("longitude"+ String(storage_array[num]) );
+		
+		}
+}
+
+
+//function read_10_result(){
+//		localStorage.setItem("dlText",		document.getElementById("dlText").innerHTML);
+//		localStorage.setItem("ulText", 		document.getElementById("ulText").innerHTML);
+//	        localStorage.setItem("pingText",	document.getElementById("pingText").innerHTML);
+//	        localStorage.setItem("jitText",		document.getElementById("jitText").innerHTML);
+//	        localStorage.setItem("ip",		document.getElementById("ip").innerHTML);
+//	        localStorage.setItem("latitude",	document.getElementById("latitude").innerHTML);
+//	        localStorage.setItem("longitude",	document.getElementById("longitude").innerHTML);
+//				
+
+
+
 
 function initUI(){
 	drawMeter(I("dlMeter"),0,meterBk,dlColor,0);
@@ -466,9 +501,8 @@ window.onload = startStop();
 </head>
 <body>
 <h1>iNonius SpeedTest IPv4</h1>
-<!--><div class= "iplink_area">
+<div class= "iplink_area">
 	<div id="ipv6Btn" onclick="openURL_v6()">IPv6</div>
-<-->
 </div>
 
 <div id="startStopBtn "></div>
@@ -516,13 +550,9 @@ window.onload = startStop();
 	<div id="longitude_area">
 			Longitude:   <span id="longitude"></span>
 	</div>
-
-	<iframe src="https://[fde4:8dba:82e1::c4]/speedtest/ipv6/speed-test.html" scrolling="no" width="100%" height="800"></iframe>
 	<div id="map">
 			<div id="map"></div>
 	</div>
-
-
 
 <h1>Last Result</h1>
 <div id="test">
@@ -571,4 +601,5 @@ window.onload = startStop();
 	<div id="map">
 			<div id="map"></div>
 	</div>
+
 
