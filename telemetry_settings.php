@@ -6,10 +6,10 @@ $db_type="mysql"; //Type of db: "mysql", "sqlite" or "postgresql"
 $Sqlite_db_file = "../telemetry.sql";
 
 // Mysql settings
-$MySql_username="USERNAME";
-$MySql_password="PASSWORD";
-$MySql_hostname="DB_HOSTNAME";
-$MySql_databasename="DB_NAME";
+$MySql_username="root";
+$MySql_password="password";
+$MySql_hostname="db";
+$MySql_databasename="TEST";
 
 // Postgresql settings
 $PostgreSql_username="USERNAME";
